@@ -1,0 +1,53 @@
+[
+  {
+      "name": "OSMgmt",
+      "vid": 0,
+      "cidr": "10.12.15.0/24",
+      "gateway": "10.12.15.1",
+      "dhcp_on": true,
+      "dhcp_start": "10.12.15.50",
+      "dhcp_end": "10.12.15.100"
+    },
+  {
+      "name": "FamilyWireless",
+      "vid": 7,
+      "cidr": "10.12.7.0/24",
+      "gateway": "10.12.7.1"
+    },
+  {
+      "name": "GuestsWireless",
+      "vid": 8,
+      "cidr": "10.12.8.0/24",
+      "gateway": "10.12.8.1"
+    },
+  {
+      "name": "Devices",
+      "vid": 9,
+      "cidr": "10.12.9.0/24",
+      "gateway": "10.12.9.1"
+    },
+  {
+      "name": "Kubernetes",
+      "vid": 17,
+      "cidr": "10.12.17.0/24",
+      "gateway": "10.12.17.1"
+    },
+  {
+      "name": "Test1",
+      "vid": 18,
+      "cidr": "10.12.18.0/24",
+      "gateway": "10.12.18.1"
+    },
+  {
+      "name": "Test2",
+      "vid": 19,
+      "cidr": "10.12.19.0/24",
+      "gateway": "10.12.19.1"
+    },
+  {
+      "name": "Test3",
+      "vid": 20,
+      "cidr": "10.12.20.0/24",
+      "gateway": "10.12.20.1"
+    }
+]

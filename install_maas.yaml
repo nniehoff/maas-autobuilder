@@ -1,0 +1,112 @@
+- name: Install MaaS Region and Rack Controller
+  hosts: all,!localhost
+  vars_files:
+    - vars.yaml
+  remote_user: ubuntu
+  become: yes
+
+  tasks:
+    - name: Gather all facts of cloud init
+      cloud_init_data_facts:
+      register: result
+
+    - debug:
+        var: result
+
+    - name: Wait for cloud init to finish
+      cloud_init_data_facts:
+        filter: status
+      register: res
+      until: "res.cloud_init_data_facts.status.v1.stage is defined and not res.cloud_init_data_facts.status.v1.stage"
+      retries: 50
+      delay: 5
+
+    - name: Copy Network information file
+      delegate_to: maas.home.nickniehoff.net
+      copy:
+        src: networks.json
+        dest: /root/networks.json
+        owner: root
+        group: root
+        mode: 0400
+
+    - name: Copy Region Setup Script
+      delegate_to: maas.home.nickniehoff.net
+      copy:
+        src: setup_regiond.sh
+        dest: /root/setup_regiond.sh
+        owner: root
+        group: root
+        mode: 0700 
+
+    - name: Copy Env Script
+      delegate_to: maas.home.nickniehoff.net
+      copy:
+        src: maas_env.sh
+        dest: /root/maas_env.sh
+        owner: root
+        group: root
+        mode: 0700 
+
+    - name: Setup SSH
+      file:
+        path: /home/maas/.ssh
+        owner: maas
+        group: maas
+        mode: 0700
+        state: directory
+
+    - name: Copy Private Key
+      copy:
+        src: id_rsa
+        dest: /home/maas/.ssh/id_rsa
+        owner: maas
+        group: maas
+        mode: 0600 
+
+    - name: Copy Public Key
+      copy:
+        src: id_rsa.pub
+        dest: /home/maas/.ssh/id_rsa.pub
+        owner: maas
+        group: maas
+        mode: 0644 
+
+    - name: Run Region Controller Setup
+      shell: /root/setup_regiond.sh -b
+      delegate_to: maas.home.nickniehoff.net
+      args:
+        chdir: /root
+        creates: /root/.maas_regiond_built
+
+    - name: Create Networks
+      shell: /root/setup_regiond.sh -n
+      delegate_to: maas.home.nickniehoff.net
+      args:
+        chdir: /root
+        creates: /root/.maas_networks_created
+
+    - name: Get Rack Secret From Region
+      shell: cat /var/lib/maas/secret
+      register: maas_secret
+      delegate_to: maas.home.nickniehoff.net
+
+    - name: Register Rack Controller
+      shell: maas-rack register --url {{ maas_url }} --secret {{ maas_secret.stdout }} && touch /root/.maas_rack_registered
+      delegate_to: 10.12.15.5
+      args:
+        creates: /root/.maas_rack_registered
+
+    - name: Configure DHCP
+      shell: /root/setup_regiond.sh -d
+      delegate_to: maas.home.nickniehoff.net
+      args:
+        chdir: /root
+        creates: /root/.maas_dhcp_configured
+
+    # - name: Finalyze MaaS Setup
+    #   shell: /root/setup_maas.sh
+    #   delegate_to: maas.home.nickniehoff.net
+    #   args:
+    #     chdir: /root
+
