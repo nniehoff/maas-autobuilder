@@ -25,6 +25,7 @@ config:
         source: "ppa:maas/stable"
     packages:
       - maas-rack-controller
+      - libvirt-bin
       - lnav
       - jq
       - python

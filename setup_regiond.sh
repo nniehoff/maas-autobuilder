@@ -165,11 +165,19 @@ create_networks() {
             NEW_VLAN_ID=`exec_cmd "" echo $NEW_VLAN_JSON | jq -r '.id'`
         fi
 
+        # In MaaS 2.4 the .vlan.id is correct but in 2.3 it is incorrect 
+        # so we handle that by a second search
         echo "Searching for Existing Subnet"
         EXISTING_SUBNET_ID=`exec_cmd "" \
             echo $EXISTING_SUBNETS  | jq -r --arg cidr $CIDR --argjson vlanid \
             $NEW_VLAN_ID \
             '.[] | select(.cidr == $cidr and .vlan.id == $vlanid) |.id'`
+
+        if [ ! "$EXISTING_SUBNET_ID" ]; then
+          EXISTING_SUBNET_ID=`exec_cmd "" \
+            echo $EXISTING_SUBNETS  | jq -r --arg cidr $CIDR \
+            '.[] | select(.cidr == $cidr) |.id'`
+        fi
 
         # Update the Existing Subnet or Create a new one
         if [ "$EXISTING_SUBNET_ID" ]; then
@@ -210,6 +218,12 @@ configure_dhcp() {
             RACK_CONTROLLER_ID=`maas admin rack-controllers read | \
               jq -r --arg cidr $CIDR \
               '.[] as $parent | .[].interface_set | .[].links | .[].subnet | select(.cidr == $cidr) | $parent.system_id'`
+
+            # This must not be MaaS 2.4 so we are guessing there is only 1 rack
+            if [ ! "$RACK_CONTROLLER_ID" ]; then
+              RACK_CONTROLLER_ID=`maas admin rack-controllers read | \
+                jq -r '.[].system_id'`
+            fi
 
             if [ $? -ne 0 ]; then
                 echo "ERROR: Getting Rack System ID failed (RC: $status)"
