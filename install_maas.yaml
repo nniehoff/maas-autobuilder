@@ -30,6 +30,15 @@
         group: root
         mode: 0400
 
+    - name: Copy VIRSH information file
+      delegate_to: maas.home.nickniehoff.net
+      copy:
+        src: virsh_hosts.json
+        dest: /root/virsh_hosts.json
+        owner: root
+        group: root
+        mode: 0400
+
     - name: Copy Region Setup Script
       delegate_to: maas.home.nickniehoff.net
       copy:
@@ -50,7 +59,7 @@
 
     - name: Setup SSH
       file:
-        path: /home/maas/.ssh
+        path: /var/lib/maas/.ssh
         owner: maas
         group: maas
         mode: 0700
@@ -59,15 +68,23 @@
     - name: Copy Private Key
       copy:
         src: id_rsa
-        dest: /home/maas/.ssh/id_rsa
+        dest: /var/lib/maas/.ssh/id_rsa
         owner: maas
         group: maas
-        mode: 0600 
+        mode: 0600
+
+    - name: Copy known hosts
+      copy:
+        src: known_hosts
+        dest: /var/lib/maas/.ssh/known_hosts
+        owner: maas
+        group: maas
+        mode: 0644 
 
     - name: Copy Public Key
       copy:
         src: id_rsa.pub
-        dest: /home/maas/.ssh/id_rsa.pub
+        dest: /var/lib/maas/.ssh/id_rsa.pub
         owner: maas
         group: maas
         mode: 0644 
@@ -103,6 +120,13 @@
       args:
         chdir: /root
         creates: /root/.maas_dhcp_configured
+
+    - name: Adding Chassis
+      shell: /root/setup_regiond.sh -c
+      delegate_to: maas.home.nickniehoff.net
+      args:
+        chdir: /root
+        creates: /root/.maas_chassis_added
 
     # - name: Finalyze MaaS Setup
     #   shell: /root/setup_maas.sh

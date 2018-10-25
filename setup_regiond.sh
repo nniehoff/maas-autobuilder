@@ -230,6 +230,22 @@ configure_dhcp() {
     # sudo maas-rack config --region-url "http://$maas_bridge_ip:5240/MAAS/" && sudo service maas-rackd restart
 }
 
+add_chassis() {
+  for VIRB64 in `cat virsh_hosts.json | jq -rc '.[] | @base64'`; do
+    VIRSH_JSON=`echo $VIRB64 | base64 --decode`
+    VIRSH_NAME=`echo $VIRSH_JSON | jq -r '.name'`
+    VIRSH_IP=`echo $VIRSH_JSON | jq -r '.ip'`
+    VIRSH_CHASSIS="qemu+ssh://${virsh_user}@${VIRSH_IP}/system"
+
+    exec_cmd "Adding Chassis $VIRSH_NAME" \
+      maas $maas_profile machines add-chassis chassis_type=virsh \
+      prefix_filter=maas-node hostname="$VIRSH_CHASSIS"
+
+  done
+
+  touch /root/.maas_chassis_added
+}
+
 import_images() {
     echo "Importing boot images, please be patient, this may take some time..."
     maas $maas_profile boot-resources import
@@ -280,7 +296,7 @@ if [ $# -eq 0 ]; then
   exit 0
 fi
 
-while getopts ":a:bc:inrdm" opt; do
+while getopts ":a:bcinrdm" opt; do
   case $opt in
    b )
       echo "Building out a new MAAS server"
@@ -305,6 +321,11 @@ while getopts ":a:bc:inrdm" opt; do
    d )
       maas_login
       configure_dhcp
+      exit 0
+    ;;
+   c )
+      maas_login
+      add_chassis
       exit 0
     ;;
    m )

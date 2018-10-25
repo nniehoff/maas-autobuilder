@@ -1,6 +1,7 @@
 #!/bin/bash
 
 maas_profile=admin
+virsh_user=nniehoff
 maas_pass=openstack
 launchpad_user=nniehoff
 maas_upstream_dns="10.12.48.8 10.12.48.9"

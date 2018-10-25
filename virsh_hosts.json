@@ -1,0 +1,15 @@
+[
+      {
+        "name": "node1.home.nickniehoff.net",
+        "ip": "10.12.48.12"
+      },{
+        "name": "node2.home.nickniehoff.net",
+        "ip": "10.12.48.39"
+      }, {
+        "name": "desktop.home.nickniehoff.net",
+        "ip": "10.12.48.31"
+      },  {
+        "name": "nuc.home.nickniehoff.net",
+        "ip": "10.12.48.40"
+      }
+]
