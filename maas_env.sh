@@ -11,3 +11,6 @@ maas_bridge_ip="$(ip a s eth0 | awk -F'[ /]' '/inet /{print $6}')"
 maas_endpoint="http://$maas_bridge_ip:5240/MAAS"
 maas_packages=(maas-region-controller maas-cli maas-proxy maas-region-api maas-common)
 pg_packages=(postgresql postgresql-client postgresql-client-common postgresql-common)
+maas_images_mirror=http://mirror.home.nickniehoff.net/maas/images/ephemeral-v3/daily/
+ubuntu_packages_mirror=http://mirror.home.nickniehoff.net/ubuntu
+

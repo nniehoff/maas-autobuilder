@@ -44,6 +44,7 @@ maas_login() {
 
 build_regiond() {
     # maas_endpoint=$(maas list | awk '{print $2}')
+    KEYRING_FILE=/usr/share/keyrings/ubuntu-cloudimage-keyring.gpg
 
     if [ ! -f /root/.maas_admin_created ]; then
         exec_cmd "Creating Admin User" \
@@ -81,7 +82,15 @@ build_regiond() {
     exec_cmd "Disabling Secure Erase" \
         maas $maas_profile maas set-config name=disk_erase_with_secure_erase \
         value=false
-
+    exec_cmd "Setting Image Repository" \
+        maas $maas_profile boot-sources create url=$maas_images_mirror \
+        keyring_filename=$KEYRING_FILE
+    exec_cmd "Removing Default Image Repository"
+        maas $maas_profile boot-source delete 1
+    exec_cmd "Adding Local Package Mirror"
+        maas $maas_profile package-repositories create name="Local Mirror" \
+        url=$ubuntu_packages_mirror arches=amd64,i386,armhf,arm64,ppc64el
+    
     touch /root/.maas_regiond_built
 }
 
