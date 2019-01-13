@@ -85,11 +85,11 @@ build_regiond() {
     exec_cmd "Setting Image Repository" \
         maas $maas_profile boot-sources create url=$maas_images_mirror \
         keyring_filename=$KEYRING_FILE
-    exec_cmd "Removing Default Image Repository"
+    exec_cmd "Removing Default Image Repository" \
         maas $maas_profile boot-source delete 1
-    exec_cmd "Adding Local Package Mirror"
-        maas $maas_profile package-repositories create name="Local Mirror" \
-        url=$ubuntu_packages_mirror arches=amd64,i386,armhf,arm64,ppc64el
+    exec_cmd "Forcing Local Mirror" \
+        maas $maas_profile package-repository update 1 \
+        url=$ubuntu_packages_mirror
     
     touch /root/.maas_regiond_built
 }
@@ -224,13 +224,13 @@ configure_dhcp() {
                 start_ip=$DHCP_START end_ip=$DHCP_END
 
             echo "Getting MaaS Rack Controller ID"
-            RACK_CONTROLLER_ID=`maas admin rack-controllers read | \
+            RACK_CONTROLLER_ID=`exec_cmd "" maas $maas_profile rack-controllers read | \
               jq -r --arg cidr $CIDR \
               '.[] as $parent | .[].interface_set | .[].links | .[].subnet | select(.cidr == $cidr) | $parent.system_id'`
 
             # This must not be MaaS 2.4 so we are guessing there is only 1 rack
             if [ ! "$RACK_CONTROLLER_ID" ]; then
-              RACK_CONTROLLER_ID=`maas admin rack-controllers read | \
+              RACK_CONTROLLER_ID=`exec_cmd "" maas $maas_profile rack-controllers read | \
                 jq -r '.[].system_id'`
             fi
 
@@ -263,7 +263,37 @@ add_chassis() {
     exec_cmd "Adding Chassis $VIRSH_NAME" \
       maas $maas_profile machines add-chassis chassis_type=virsh \
       prefix_filter=maas-node hostname="$VIRSH_CHASSIS"
+  done
 
+  MAAS_MACHINES=`exec_cmd "" maas $maas_profile machines read | jq '.[]'`
+  EXISTING_TAGS=`exec_cmd "" maas $maas_profile tags read`
+
+  # Create Tags based on parameters from tags.json
+  for TAGB64 in `cat tags.json | jq -rc '.[] | @base64'`; do
+    TAG_JSON=`echo $TAGB64 | base64 --decode`
+    TAG_NAME=`echo $TAG_JSON | jq -r '.name'`
+    TAG_DESCRIPTION=`echo $TAG_JSON | jq -r '.description'`
+    TAG_PATTERN=`echo $TAG_JSON | jq -r '.hostname_pattern'`
+
+    EXISTING_TAG=`echo $EXISTING_TAGS | jq -r --arg name $TAG_NAME \
+        '.[] | select(.name == $name) |.name'`
+
+    # Update tag or create new one
+    if [ "$EXISTING_TAG" ]; then
+        exec_cmd "Updating Tag $TAG_NAME" maas $maas_profile tag update \
+            $TAG_NAME comment="$TAG_DESCRIPTION"
+    else
+        exec_cmd "Creating Tag $TAG_NAME" maas $maas_profile tags create \
+            name="$TAG_NAME" comment="$TAG_DESCRIPTION"
+    fi
+
+    # Match machines hostnames based on regex from tags.json
+    APPLICABLE_MACHINES=`echo $MAAS_MACHINES | jq -r --arg regex $TAG_PATTERN \
+        '. as $parent | .hostname | select(test($regex)) | $parent.system_id'`
+
+    ADD_STRING=`echo $APPLICABLE_MACHINES | sed 's@ @ add=@g'`
+    exec_cmd "Applying Tag $TAG_NAME" maas $maas_profile tag update-nodes \
+        $TAG_NAME add=$ADD_STRING
   done
 
   touch /root/.maas_chassis_added

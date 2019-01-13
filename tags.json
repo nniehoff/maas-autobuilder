@@ -1,0 +1,47 @@
+[
+  {
+    "name": "uefi",
+    "hostname_pattern": "^maas-node-(uefi|k8s)-(master-|worker-)*\\d+$",
+    "description": "UEFI Boot Capable Nodes"
+  },
+  {
+    "name": "k8s-master",
+    "hostname_pattern": "^maas-node-k8s-master-\\d+$",
+    "description": "Kubernetes Masters"
+  },
+  {
+    "name": "k8s-worker",
+    "hostname_pattern": "^maas-node-k8s-worker-\\d+$",
+    "description": "Kubernetes Workers"
+  },
+  {
+    "name": "juju-contoller",
+    "hostname_pattern": "^maas-node-juju$",
+    "description": "JuJu Controllers"
+  },
+  {
+    "name": "mib",
+    "hostname_pattern": "^maas-node-mib$",
+    "description": "MAAS Image Builders"
+  },
+  {
+    "name": "nuc",
+    "hostname_pattern": "^maas-node-(uefi-|k8s-)*(master-1|worker-1)*([1-5]|mib|juju)?$",
+    "description": "VMs on nuc.home.nickniehoff.net"
+  },
+  {
+    "name": "desktop",
+    "hostname_pattern": "^maas-node-(uefi-|k8s-)*(master-2|worker-2)*(1[6-9]|20)?$",
+    "description": "VMs on desktop.home.nickniehoff.net"
+  },
+  {
+    "name": "node1",
+    "hostname_pattern": "^maas-node-(uefi-|k8s-)*(master-3|worker-3)*([6-9]|10)?$",
+    "description": "VMs on node1.home.nickniehoff.net"
+  },
+  {
+    "name": "node2",
+    "hostname_pattern": "^maas-node-(uefi-|k8s-)*(worker-4)*(1[1-5])?$",
+    "description": "VMs on node2.home.nickniehoff.net"
+  }
+]

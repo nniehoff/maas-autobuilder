@@ -21,6 +21,15 @@
       retries: 50
       delay: 5
 
+    - name: Copy Tags information file
+      delegate_to: maas.home.nickniehoff.net
+      copy:
+        src: tags.json
+        dest: /root/tags.json
+        owner: root
+        group: root
+        mode: 0400
+
     - name: Copy Network information file
       delegate_to: maas.home.nickniehoff.net
       copy:
