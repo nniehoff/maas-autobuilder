@@ -15,7 +15,7 @@
     "description": "Kubernetes Workers"
   },
   {
-    "name": "juju-contoller",
+    "name": "juju-controller",
     "hostname_pattern": "^maas-node-juju$",
     "description": "JuJu Controllers"
   },
@@ -43,5 +43,10 @@
     "name": "node2",
     "hostname_pattern": "^maas-node-(uefi-|k8s-)*(worker-4)*(1[1-5])?$",
     "description": "VMs on node2.home.nickniehoff.net"
-  }
+  },
+  {
+    "name": "esxi",
+    "hostname_pattern": "^maas-node-esxi-\\d+$",
+    "description": "ESXi Hosts"
+  } 
 ]
